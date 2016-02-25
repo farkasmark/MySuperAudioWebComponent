@@ -1,0 +1,27 @@
+{
+  "name": "mysuperaudio-webcomponent",
+  "description": "A Polymer based HTML5 Web Component for Playing Audio Files",
+  "main": "index.js",
+  "authors": [
+    "Mark Farkas"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "HTML5",
+    "Web",
+    "Component",
+    "Polymer",
+    "HTML5",
+    "Audio"
+  ],
+  "homepage": "https://github.com/farkasmark/MySuperAudioWebComponent",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
