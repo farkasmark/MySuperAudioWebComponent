@@ -8,6 +8,12 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../polymer/polymer.html">
+<!-- import paper-progress web component -->
+<link rel="import" href="../paper-progress/paper-progress.html">
+<!-- import iron-icon web component -->
+<link rel="import" href="../iron-icon/iron-icon.html">
+<!-- import av-icons web component -->
+<link rel="import" href="../iron-icons/av-icons.html">
 
 <!--
 An element providing a solution to no problem in particular.
@@ -20,130 +26,239 @@ Example:
 -->
 <dom-module id="my-super-audio">
 
-    <style>
-        :host {
-            display: block;
-            box-sizing: border-box;
-        }
-
-        .author img {
-            float: left;
-            margin-right: 5px;
-            max-height: 100px;
-            max-width: 100px;
-        }
-    </style>
-
+    <!-- web component markup and style -->
     <template>
-        <h1>&lt;my-super-audio&gt;</h1>
-        <content></content>
-        <p class="author">
-            <img src="{{author.image}}">
-            Cheers,<br />
-            <span class="name">{{author.name}}</span>
-        </p>
+
+        <!-- template style -->
+        <style>
+            :host {
+                width: 100%;
+            }
+
+            #left,
+            #right {
+                height: 50px;
+                width: 50px;
+                position: relative;
+            }
+
+            #left {
+                background-color: blueviolet;
+            }
+
+            /* Helpers */
+            .layout-horizontal {
+                display: flex;
+                -ms-flex-direction: row;
+                -webkit-flex-direction: row;
+                flex-direction: row;
+            }
+
+            .flex {
+                -ms-flex: 1;
+                -webkit-flex: 1;
+                flex: 1;
+            }
+
+            .self-start {
+                -ms-align-self: flex-start;
+                -webkit-align-self: flex-start;
+                align-self: flex-start;
+            }
+
+            .self-end {
+                -ms-align-self: flex-end;
+                -webkit-align-self: flex-end;
+                align-self: flex-end;
+            }
+
+            #title {
+                position: absolute;
+                color: blueviolet;
+                font-size: 15px;
+                text-align: center;
+                line-height: 50px;
+                z-index: 2;
+            }
+
+            #wrapper {
+                position: relative;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+                cursor: pointer;
+            }
+
+            .fit {
+                position: absolute;
+                margin: auto;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+            }
+
+            paper-progress {
+                position: relative;
+                width: 100%;
+                --paper-progress-active-color: blueviolet;
+                --paper-progress-height: 50px;
+                --paper-progress-container-color: rgba(255, 255, 255, .75);
+            }
+
+            #duration {
+                text-align: center;
+                line-height: 50px;
+                font-size: 11px;
+                color: blueviolet;
+            }
+
+            #play,
+            #pause {
+                color: #fff;
+            }
+        </style>
+
+        <!-- template markup -->
+        <div id="wrapper" class="layout-horizontal" on-click="playPause">
+            <div id="left" class="self-start">
+                <!-- Icons -->
+                <iron-icon id="play"
+                           class="fit"
+                           icon="av:play-circle-outline"
+                           hidden$="{{ isPlaying }}"></iron-icon>
+
+                <iron-icon id="pause"
+                           class="fit"
+                           icon="av:pause-circle-outline"
+                           hidden$="{{ !isPlaying }}"></iron-icon>
+            </div>
+            <div class="flex">
+                <!-- Title -->
+                <div id="title" class="fit">{{ title }}</div>
+                <!-- Audio HTML5 element -->
+                <audio id="audio" src="{{ src }}"></audio>
+                <!-- Paper progress bar -->
+                <paper-progress id="progress"></paper-progress>
+            </div>
+            <div id="right" class="self-end">
+                <!-- Duration -->
+                <div id="duration" class="fit">
+                    <span class="fit">{{ _convertSecToMin(duration) }}</span>
+                </div>
+            </div>
+        </div>
+
     </template>
 
-</dom-module>
+    <!-- web component behavior -->
+    <script>
 
-<script>
+        Polymer({
 
-    Polymer({
+            is: 'my-super-audio',
 
-        is: 'my-super-audio',
-
-        properties: {
-
-            /**
-             * `fancy` indicates that the element should don a monocle and tophat,
-             * while checking its pocket watch.
-             */
-            fancy: Boolean,
-
-            /**
-             * Describes the author of the element, but is really just an excuse to
-             * show off JSDoc annotations.
-             *
-             * @type {{name: string, image: string}}
-             */
-            author: {
-                type: Object,
-                // Use `value` to provides a default value for a property, by setting it
-                // on your element's prototype.
-                //
-                // If you provide a function, as we do here, Polymer will call that
-                // _per element instance_.
-                //
-                // We do that to ensure that each element gets its own copy of the
-                // value, rather than having it shared across all instances (via the
-                // prototype).
-                value: function () {
-                    return {
-                        name: 'Mark Farkas',
-                        image: 'http://www.animaljustice.ca/wp-content/uploads/2013/03/Curious_Raccoon-90x80.jpg',
-                    };
+            properties: {
+                title: String,
+                src: String,
+                isPlaying: {
+                    type: Boolean,
+                    value: false
+                },
+                duration: {
+                    type: Number,
+                    value: 0
                 }
             },
 
-        },
+            // Element Lifecycle
 
-        // Element Lifecycle
+            ready: function () {
+                // `ready` is called after all elements have been configured, but
+                // propagates bottom-up. This element's children are ready, but parents
+                // are not.
+                //
+                // This is the point where you should make modifications to the DOM (when
+                // necessary), or kick off any processes the element wants to perform.
+            },
 
-        ready: function () {
-            // `ready` is called after all elements have been configured, but
-            // propagates bottom-up. This element's children are ready, but parents
-            // are not.
-            //
-            // This is the point where you should make modifications to the DOM (when
-            // necessary), or kick off any processes the element wants to perform.
-        },
+            attached: function () {
+                // `attached` fires once the element and its parents have been inserted
+                // into a document.
+                //
+                // This is a good place to perform any work related to your element's
+                // visual state or active behavior (measuring sizes, beginning animations,
+                // loading resources, etc).
+            },
 
-        attached: function () {
-            // `attached` fires once the element and its parents have been inserted
-            // into a document.
-            //
-            // This is a good place to perform any work related to your element's
-            // visual state or active behavior (measuring sizes, beginning animations,
-            // loading resources, etc).
-        },
+            detached: function () {
+                // The analog to `attached`, `detached` fires when the element has been
+                // removed from a document.
+                //
+                // Use this to clean up anything you did in `attached`.
+            },
 
-        detached: function () {
-            // The analog to `attached`, `detached` fires when the element has been
-            // removed from a document.
-            //
-            // Use this to clean up anything you did in `attached`.
-        },
+            // Register event listeners
 
-        // Element Behavior
+            listeners: {
+                'audio.loadedmetadata': '_onCanPlay',
+                'audio.playing': '_startProgressTimer'
+            },
 
-        /**
-         * The `my-super-audio-lasers` event is fired whenever `fireLasers` is called.
-         *
-         * @event my-super-audio-lasers
-         * @detail {{sound: String}}
-         */
+            // When metadata is loaded and player can start playing
 
-        /**
-         * Sometimes it's just nice to say hi.
-         *
-         * @param {string} greeting A positive greeting.
-         * @return {string} The full greeting.
-         */
-        sayHello: function (greeting) {
-            var response = greeting || 'Hello World!';
-            return 'my-super-audio says, ' + response;
-        },
+            _onCanPlay: function () {
+                var player = this;
+                player.$.progress.max = player.$.audio.duration * 1000;
+                player.duration = player.$.audio.duration;
+            },
 
-        /**
-         * Attempts to destroy this element's enemies with an any beam of light!
-         *
-         * Or, at least, dispatches an event in the vain hope that someone else will
-         * do the zapping.
-         */
-        fireLasers: function () {
-            this.fire('my-super-audio-lasers', { sound: 'Pew pew!' });
-        }
+            // to convert seconds to 'm:ss' format
+            _convertSecToMin: function (seconds) {
+                if (seconds === 0) {
+                    return '';
+                }
+                var minutes = Math.floor(seconds / 60);
+                var secondsToCalc = Math.floor(seconds % 60) + '';
+                return minutes + ':' + (secondsToCalc.length < 2 ? '0' + secondsToCalc : secondsToCalc);
+            },
 
-    });
+            // Start the progress timer
 
-</script>
+            _startProgressTimer: function () {
+
+                var player = this;
+                player.timer = {};
+
+                if (player.timer.sliderUpdateInterval) {
+                    clearInterval(player.timer.sliderUpdateInterval);
+                }
+
+                player.timer.sliderUpdateInterval = setInterval(function () {
+                    if (player.$.audio.paused) {
+                        clearInterval(player.timer.sliderUpdateInterval);
+                    } else {
+                        player.$.progress.value = player.$.audio.currentTime * 1000;
+                        player.currentTime = player.$.audio.currentTime;
+                    }
+                }, 120);
+            },
+
+            // Element Behavior
+
+            playPause: function (e) {
+                e.preventDefault();
+
+                var player = this;
+
+                if (player.$.audio.paused) {
+                    player.$.audio.play();
+                    player.isPlaying = true;
+                } else {
+                    player.$.audio.pause();
+                    player.isPlaying = false;
+                }
+            }
+        });
+
+    </script>
+
+</dom-module>
