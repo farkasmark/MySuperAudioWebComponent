@@ -1,5 +1,5 @@
 {
-  "name": "mysuperaudio-webcomponent",
+  "name": "my-super-audio",
   "description": "A Polymer based HTML5 Web Component for Playing Audio Files",
   "main": "index.js",
   "authors": [
@@ -25,6 +25,10 @@
     "tests"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#1.2.0"
+    "polymer": "Polymer/polymer#^1.3.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "^4.2.1"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "mysuperaudio-webcomponent",
+  "name": "my-super-audio",
   "version": "1.0.0",
   "description": "A Polymer based HTML5 Web Component for Playing Audio Files",
   "main": "index.js",
