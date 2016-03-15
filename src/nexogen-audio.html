@@ -1,0 +1,292 @@
+<!--
+@license
+Copyright (c) 2010-16 NEXOGEN.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Author: Mark Farkas <farkas.mark@nexogen.hu>
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- import paper-progress web component -->
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<!-- import iron-icon web component -->
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<!-- import av-icons web component -->
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+
+<!--
+An element providing advanced audio playback capability for HTML5.
+
+Example:
+
+    <nexogen-audio></nexogen-audio>
+
+@demo
+-->
+<dom-module id="nexogen-audio">
+
+    <!-- web component markup and style -->
+    <template>
+
+        <!-- template style -->
+        <style>
+            :host {
+                width: 100%;
+            }
+
+            #left,
+            #right {
+                height: 50px;
+                width: 50px;
+                position: relative;
+            }
+
+            #left {
+                background-color: blueviolet;
+            }
+
+            /* Helpers */
+            .layout-horizontal {
+                display: flex;
+                -ms-flex-direction: row;
+                -webkit-flex-direction: row;
+                flex-direction: row;
+            }
+
+            .flex {
+                -ms-flex: 1;
+                -webkit-flex: 1;
+                flex: 1;
+            }
+
+            .self-start {
+                -ms-align-self: flex-start;
+                -webkit-align-self: flex-start;
+                align-self: flex-start;
+            }
+
+            .self-end {
+                -ms-align-self: flex-end;
+                -webkit-align-self: flex-end;
+                align-self: flex-end;
+            }
+
+            #title {
+                position: absolute;
+                color: blueviolet;
+                font-size: 15px;
+                text-align: center;
+                line-height: 50px;
+                z-index: 2;
+            }
+
+            #wrapper {
+                position: relative;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+                cursor: pointer;
+            }
+
+            .fit {
+                position: absolute;
+                margin: auto;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+            }
+
+            paper-progress {
+                position: relative;
+                width: 100%;
+                --paper-progress-active-color: blueviolet;
+                --paper-progress-height: 50px;
+                --paper-progress-container-color: rgba(255, 255, 255, .75);
+            }
+
+            #duration {
+                text-align: center;
+                line-height: 50px;
+                font-size: 11px;
+                color: blueviolet;
+            }
+
+            #play,
+            #pause {
+                color: #fff;
+            }
+        </style>
+
+        <!-- template markup -->
+        <div id="wrapper" class="layout-horizontal" on-click="playPause">
+            <div id="left" class="self-start">
+                <!-- Icons -->
+                <iron-icon id="play"
+                           class="fit"
+                           icon="av:play-circle-outline"
+                           hidden$="{{ isPlaying }}"></iron-icon>
+
+                <iron-icon id="pause"
+                           class="fit"
+                           icon="av:pause-circle-outline"
+                           hidden$="{{ !isPlaying }}"></iron-icon>
+            </div>
+            <div class="flex">
+                <!-- Title -->
+                <div id="title" class="fit">{{ title }}</div>
+                <!-- Audio HTML5 element -->
+                <audio id="audio" src="{{ src }}"></audio>
+                <!-- Paper progress bar -->
+                <paper-progress id="progress"></paper-progress>
+            </div>
+            <div id="right" class="self-end">
+                <!-- Duration -->
+                <div id="duration" class="fit">
+                    <span class="fit">{{ _convertSecToMin(duration) }}</span>
+                </div>
+            </div>
+        </div>
+
+    </template>
+
+    <!-- web component behavior -->
+    <script>
+    (function() {
+        'use strict';
+        
+        class NexogenAudio {
+           
+          beforeRegister () {
+            // Takes CamelCase class name "NexogenAudio" -> "nexogen-audio"
+            let is = this.constructor.name.replace(/\W+/g, '-')
+              .replace(/([a-z\d])([A-Z])/g, '$1-$2').toLowerCase()
+              
+            this.is = is
+            this.properties = {
+              title: String,
+              src: String,
+              isPlaying: {
+                type: Boolean,
+                value: false
+              },
+              duration: {
+                type: Number,
+                value: 0
+              }
+            }
+            
+            //
+            // Element Lifecycle
+            //
+            
+            // `ready` is called after all elements have been configured, but
+            // propagates bottom-up. This element's children are ready, but parents
+            // are not.
+            //
+            // This is the point where you should make modifications to the DOM (when
+            // necessary), or kick off any processes the element wants to perform.
+            this.ready = () => {
+                
+            }
+            
+            // `attached` fires once the element and its parents have been inserted
+            // into a document.
+            //
+            // This is a good place to perform any work related to your element's
+            // visual state or active behavior (measuring sizes, beginning animations,
+            // loading resources, etc).
+            this.attached = () => {
+                
+            }
+            
+            // The analog to `attached`, `detached` fires when the element has been
+            // removed from a document.
+            //
+            // Use this to clean up anything you did in `attached`.            
+            this.detached = () => {
+                
+            }
+            
+            //
+            // Register event listeners
+            //
+            this.listeners = {
+              'audio.loadedmetadata': '_onCanPlay',
+              'audio.playing': '_startProgressTimer'    
+            }
+          }
+          
+          // When metadata is loaded and player can start playing
+          _onCanPlay () {
+            var player = this
+            player.$.progress.max = player.$.audio.duration * 1000
+            player.duration = player.$.audio.duration
+          }
+          
+          // to convert seconds to 'm:ss' format
+          _convertSecToMin (seconds) {
+            if (seconds === 0) return ''
+            var minutes = Math.floor(seconds / 60)
+            var secondsToCalc = Math.floor(seconds % 60) + ''
+            return minutes + ':' + (secondsToCalc.length < 2 ? '0' + secondsToCalc : secondsToCalc)
+          }
+          
+          // Start the progress timer
+          _startProgressTimer () {
+
+            var player = this
+            player.timer = {}
+
+            if (player.timer.sliderUpdateInterval) {
+              clearInterval(player.timer.sliderUpdateInterval)
+            }
+
+            player.timer.sliderUpdateInterval = setInterval(() => {
+              if (player.$.audio.paused) {
+                clearInterval(player.timer.sliderUpdateInterval)
+              } else {
+                player.$.progress.value = player.$.audio.currentTime * 1000
+                player.currentTime = player.$.audio.currentTime
+              }
+            }, 120)
+          }
+          
+          // Element Behavior
+
+          playPause (e) {
+            e.preventDefault()
+            
+            var player = this
+
+            if (player.$.audio.paused) {
+              player.$.audio.play();
+              player.isPlaying = true;
+            } else {
+              player.$.audio.pause();
+              player.isPlaying = false;
+            }
+          } 
+        }
+
+        Polymer(NexogenAudio);
+        
+    })();
+    </script>
+
+</dom-module>

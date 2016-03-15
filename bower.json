@@ -1,5 +1,5 @@
 {
-  "name": "my-super-audio",
+  "name": "nexogen-audio",
   "description": "A Polymer based HTML5 Web Component for Playing Audio Files",
   "main": "index.js",
   "authors": [
